@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
+import "@/bot/modules/start/start.handler"
 export async function GET() {
   return NextResponse.json({ ok: true });
 }
