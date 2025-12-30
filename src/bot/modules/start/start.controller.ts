@@ -6,7 +6,7 @@ let userName: string
 bot.action("gap", (ctx) => {
     ctx.reply("https://t.me/joinchat/qc6GaSXlxktmMDA0");
 });
-bot.action("Idfounder", async (ctx) => {
+bot.action("IdFounder", async (ctx) => {
     userId = ctx.chat?.id
     userName = ctx.from.first_name
     await ctx.reply(`your id is : ${userId}\n for:${userName}`)
