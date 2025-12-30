@@ -1,5 +1,6 @@
 import { bot } from '@/bot/modules/bot';
 
+
 bot.hears("hi", (ctx) => ctx.reply("hi"));
 
 bot.on("text", async (ctx) => {
