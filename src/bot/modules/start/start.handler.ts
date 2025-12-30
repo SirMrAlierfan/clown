@@ -8,11 +8,12 @@ bot.start(async (ctx) => {
     'what do you want from this clown',
     Markup.inlineKeyboard([
       [
-        Markup.button.callback('circus addres', 'gap')
+        Markup.button.callback('circus addres', 'gap'),
+        Markup.button.url("add to group ","https://t.me/batmanclownbot?startgroup=true" )
       ],
       [
         Markup.button.callback('pv to batman', 'pvMsg')]
-      ,
+      ,   
       [
         Markup.button.callback("what is my id?", "IdFounder")
       ], [
