@@ -17,16 +17,11 @@ bot.action("pvMsg", async (ctx) => {
 
     const handler = (ctx2: any) => {
         const userId = ctx2.from.id;
-
         if (!userMessages[userId]) {
             const msg = ctx2.message.text;
             userMessages[userId] = msg;
-
             ctx2.reply("your message has been saved!");
-
             bot.telegram.sendMessage(7584261287, `Message from @${ctx2.from.username || ctx2.from.first_name}:\n${msg}`);
-
-
         }
     };
 
@@ -35,20 +30,10 @@ bot.action("pvMsg", async (ctx) => {
 bot.action("privetMsg", async (ctx) => {
     await ctx.answerCbQuery();
     await ctx.reply("write your msg to batman as privet");
-
     const handler = (ctx2: any) => {
-
         const msg = ctx2.message.text;
-
-
         ctx2.reply("your message has been delverd!");
-
         bot.telegram.sendMessage(7584261287, `Message :${msg}`);
-
-
-
-
     };
-
     bot.on('text', handler);
 });
