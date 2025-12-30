@@ -8,12 +8,16 @@ bot.on("text", async (ctx) => {
   const userId = ctx.from.id;
   const adminList = await ctx.getChatAdministrators()
   const isAdmin = adminList.some(admin => admin.user.id === userId);
+  bot.hears("hi",(ctx)=>{
+    ctx.sendMessage("hi")
+  })
   if (isAdmin) {
     if (ctx.message.reply_to_message) {
       if (ctx.message.reply_to_message.from?.id) {
         const originalUserId = ctx.message.reply_to_message.from.id;
         const originalUsername = ctx.message.reply_to_message.from.username || ctx.message.reply_to_message.from.first_name;
         switch (messageText) {
+          
           case "ban":
             bot.telegram.banChatMember(chatId, originalUserId)
             bot.telegram.sendMessage(chatId, `user ${originalUsername} got banned`); break
@@ -34,6 +38,8 @@ bot.on("text", async (ctx) => {
               }
             })
             break
+            default:
+              break
         }
       }
 
