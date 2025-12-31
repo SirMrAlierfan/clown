@@ -56,19 +56,24 @@ bot.on("text", async (ctx) => {
 
     case "promote":
     case "ترفیغ":
-      await bot.telegram.promoteChatMember(chatId, originalUserId, {
-        can_change_info: true,
-        can_delete_messages: true,
-        can_edit_messages: true,
-        can_manage_chat: true,
-        can_invite_users: true,
-        can_manage_topics: true,
-        can_pin_messages: true,
-        can_manage_video_chats: true,
-        can_post_messages: true,
-        can_restrict_members: true
-      })
-       ctx.reply(`کابر ${originalUsername}مدیر است`)
+      if (isAdmin) {
+        ctx.reply(`همین حالا مدیر است${originalUsername} `)
+      }
+      else {
+        await bot.telegram.promoteChatMember(chatId, originalUserId, {
+          can_change_info: true,
+          can_delete_messages: true,
+          can_edit_messages: true,
+          can_manage_chat: true,
+          can_invite_users: true,
+          can_manage_topics: true,
+          can_pin_messages: true,
+          can_manage_video_chats: true,
+          can_post_messages: true,
+          can_restrict_members: true
+        })
+      }
+
       break
     case "unpromote":
     case "عزل":
@@ -84,22 +89,22 @@ bot.on("text", async (ctx) => {
         can_post_messages: false,
         can_restrict_members: false
       })
-       ctx.reply(`کابر ${originalUsername}مدیر نیست`)
+      ctx.reply(`کابر ${originalUsername}مدیر نیست`)
       break
     case "pin":
     case "پین":
       await bot.telegram.pinChatMessage(chatId, ctx.message.reply_to_message.message_id)
-       ctx.reply(`پیام پین شد`)
+      ctx.reply(`پیام پین شد`)
       break
     case "unpin":
     case "حذف پین":
-      await bot.telegram.pinChatMessage(chatId, ctx.message.reply_to_message.message_id)
-       ctx.reply(`پیام از پین درآمد`)
+      await bot.telegram.unpinChatMessage(chatId, ctx.message.reply_to_message.message_id)
+      ctx.reply(`پیام از پین درآمد`)
       break
     case "del":
     case "حذف":
       await bot.telegram.deleteMessage(chatId, ctx.message.reply_to_message.message_id)
-       ctx.reply(`پیام حذف شد`)
+      ctx.reply(`پیام حذف شد`)
       break
     default:
       break;
