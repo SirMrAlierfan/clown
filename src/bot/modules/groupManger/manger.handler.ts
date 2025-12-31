@@ -4,6 +4,11 @@ import { silent } from "@/database/models/silentList";
 import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
 
+console.log("GROUP MANAGER LOADED");
+
+bot.on("text", async (ctx) => {
+  console.log("TEXT EVENT HIT");
+});
 
 
 bot.on("text", async (ctx) => {

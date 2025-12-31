@@ -1,12 +1,16 @@
+
 import mongoose from "mongoose";
 
+let isConnected = false;
+
 export async function connectDB() {
-  try {
-    if (process.env.MONGOURI)
-      await mongoose.connect(process.env.MONGOURI);
-    console.log("MongoDB Connected");
-  } catch (err) {
-    console.error("MongoDB Error:", err);
-    process.exit(1);
+  if (isConnected) return;
+
+  if (!process.env.MONGOURI) {
+    throw new Error("MONGOURI not defined");
   }
+
+  await mongoose.connect(process.env.MONGOURI);
+  isConnected = true;
+  console.log("MongoDB Connected");
 }
