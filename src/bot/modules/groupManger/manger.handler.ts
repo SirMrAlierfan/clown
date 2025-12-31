@@ -24,7 +24,7 @@ bot.on("text", async (ctx) => {
   const doesHaveNickName = await NickName.exists({ userId: originalUserId, chatId })
   const nickName = await NickName.findOne({ userId: originalUserId, chatId })
   const commend = parts[0]
-  switch (messageText) {
+  switch (commend) {
     case "id": case "ایدی": case "آیدی":
       await ctx.reply(`کاربر ${originalUsername}\n ${isPromoted ? "ادیمن" : "عضو عادی گروه"} \n ${doesHaveNickName ? `لقب :${nickName?.name}` : "بی لقب"}`)
       break
