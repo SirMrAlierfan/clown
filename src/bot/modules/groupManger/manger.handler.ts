@@ -28,7 +28,8 @@ bot.on("text", async (ctx) => {
     case "id": case "ایدی": case "آیدی":
       await ctx.reply(`کاربر ${originalUsername}\n ${isPromoted ? "ادیمن" : "عضو عادی گروه"} \n ${doesHaveNickName ? `لقب :${nickName?.name}` : "بی لقب"}`)
       break
-    case "ban": case "بن": case "سیک":
+    case "ban": case "بن": case "سیک": try {
+
       if (isBan) {
         ctx.reply("همین الانش بنه")
 
@@ -38,8 +39,15 @@ bot.on("text", async (ctx) => {
         await ctx.reply(`کاربر @${originalUsername} بن شد.`);
         await ban.updateOne({ userId: originalUserId, chatId }, { $set: { BannedBy: userId, bannedAt: Date.now() } }, { upsert: true })
         break;
+
       }
-    case "unban": case "حذف بن":
+    }
+      catch (err) {
+        console.log(err);
+        break
+      }
+
+    case "unban": case "حذف بن": try {
       if (!isBan) {
         ctx.reply("همین الانشم آزاده")
 
@@ -49,14 +57,19 @@ bot.on("text", async (ctx) => {
         await ban.deleteOne({ userId: originalUserId, chatId })
         break;
       }
-    case "silent": case "سایلنت": case "خفه": case "سکوت":
+
+    } catch (err) {
+      console.log(err);
+      break
+    }
+    case "silent": case "سایلنت": case "خفه": case "سکوت": try {
       if (isSilent) {
         await ctx.reply("همین الانشم سکوته");
         break;
       }
 
-      
-      let durationStr = parts[1] || "5m"; 
+
+      let durationStr = parts[1] || "5m";
       let durationMs = 0;
 
       if (durationStr.endsWith("s") || durationStr.endsWith("sec") || durationStr.endsWith("ثانیه")) {
@@ -66,7 +79,7 @@ bot.on("text", async (ctx) => {
       } else if (durationStr.endsWith("h") || durationStr.endsWith("hour") || durationStr.endsWith("ساعت")) {
         durationMs = parseInt(durationStr) * 60 * 60 * 1000;
       } else {
-        
+
         durationMs = parseInt(durationStr) * 60 * 1000;
       }
 
@@ -93,8 +106,11 @@ bot.on("text", async (ctx) => {
       break;
 
 
-
-    case "unsilent": case "حذف سکوت":
+    } catch (err) {
+      console.log(err);
+      break
+    }
+    case "unsilent": case "حذف سکوت": try {
       if (!isSilent) {
         ctx.reply("همین الانشم سکوت نیست")
 
@@ -112,8 +128,11 @@ bot.on("text", async (ctx) => {
         await ctx.reply(`کاربر @${originalUsername} می‌تواند دوباره پیام ارسال کند.`);
         break;
       }
-
-    case "promote": case "ترفیع": case "تنظیم مدیر":
+    } catch (err) {
+      console.log(err);
+      break
+    }
+    case "promote": case "ترفیع": case "تنظیم مدیر": try {
       if (isPromoted) {
         ctx.reply(`همین حالا مدیر است `)
 
@@ -136,7 +155,12 @@ bot.on("text", async (ctx) => {
 
         break
       }
-    case "unpromote": case "عزل": case "حذف مدیر":
+    }
+      catch (err) {
+        console.log(err);
+        break
+      }
+    case "unpromote": case "عزل": case "حذف مدیر": try {
       if (!isPromoted) {
         ctx.reply("همین الانشم مدیر نیست")
 
@@ -158,34 +182,57 @@ bot.on("text", async (ctx) => {
         ctx.reply(`کابر ${originalUsername}مدیر نیست`)
         break
       }
-    case "setnickname": case "تنظیم لقب":
+    } catch (err) {
+      console.log(err);
+      break
+    }
+    case "setnickname": case "تنظیم لقب": try {
       const userNickname = messageText.replace(/^(تنظیم لقب|setnickname)\s*/, "");
 
       await NickName.updateOne({ userId: originalUserId, chatId }, { $set: { name: userNickname } }, { upsert: true })
       ctx.reply(`لفب کاربر به ${userNickname} تغییر یافت`)
       break
-    case "nickname": case "لقب":
+    } catch (err) {
+      console.log(err);
+      break
+    }
+    case "nickname": case "لقب":try{
       const gettedNickname = await NickName.findOne({ userId: originalUserId, chatId })
       ctx.reply(`لقب کاربر : ${gettedNickname?.name}`)
+      break}catch (err) {
+      console.log(err);
       break
-    case "delnickname": case "حذف لقب":
+    }
+    case "delnickname": case "حذف لقب":try{
 
       await NickName.deleteOne({ userId: originalUserId, chatId })
-    
+
       ctx.reply(`لقب کاربر حذف شد`)
+      break}catch (err) {
+      console.log(err);
       break
-    case "pin": case "پین":
+    }
+    case "pin": case "پین":try{
       await bot.telegram.pinChatMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام پین شد`)
+      break}catch (err) {
+      console.log(err);
       break
-    case "unpin": case "حذف پین":
+    }
+    case "unpin": case "حذف پین":try{
       await bot.telegram.unpinChatMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام از پین درآمد`)
+      break}catch (err) {
+      console.log(err);
       break
-    case "del": case "حذف":
+    }
+    case "del": case "حذف":try{
       await bot.telegram.deleteMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام حذف شد`)
+      break}catch (err) {
+      console.log(err);
       break
+    }
     default:
       break;
   }
