@@ -4,6 +4,7 @@ import { bot } from '@/bot/modules/bot';
 
 
 bot.start(async (ctx) => {
+  
   await ctx.reply(
     'what do you want from this clown',
     Markup.inlineKeyboard([
