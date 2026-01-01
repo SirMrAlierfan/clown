@@ -14,11 +14,12 @@ bot.start(async (ctx) => {
       ],
       [
         Markup.button.callback('pv to batman', 'pvMsg')]
-      ,   
+      , 
+       [
+        Markup.button.callback("send privet Msg", "privetMsg")
+      ] , 
       [
         Markup.button.callback("what is my id?", "IdFounder")
-      ], [
-        Markup.button.callback("send privet Msg", "privetMsg")
       ]
     ])
   );
