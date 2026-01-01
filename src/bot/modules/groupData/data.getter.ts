@@ -3,8 +3,9 @@ import { bot } from "../bot";
 import { silent } from "@/database/models/silentList";
 import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
-import { Markup } from "telegraf";
-bot.on("text", async (ctx) => {
+import { Composer, Markup } from "telegraf";
+export const listComposer = new Composer()
+listComposer.on("text", async (ctx, next) => {
     const userId: number = ctx.from.id;
     const chatId = ctx.chat.id;
     const adminList = await ctx.getChatAdministrators();
@@ -22,8 +23,9 @@ bot.on("text", async (ctx) => {
             )
             )
     }
+    await next()
 })
-bot.on("callback_query", async (ctx) => {
+listComposer.on("callback_query", async (ctx) => {
     const userId: number = ctx.from.id;
     if (!ctx.chat?.id) return
     const chatId = ctx.chat.id;
@@ -32,15 +34,15 @@ bot.on("callback_query", async (ctx) => {
     if (data)
         switch (data) {
             case "banlist":
-                const banData = await ban.find({ chatId }).lean()
+                const banData = await ban.find({ chatId }).lean().limit(20)
                 await ctx.editMessageText(banData.map(item => `${item.userId} در ${new Date(item.bannedAt).toLocaleString()} توسط ${item.BannedBy}\n`).join(""))
                 break;
             case "silentlist":
-                const silentData = await silent.find({ chatId }).lean()
+                const silentData = await silent.find({ chatId }).lean().limit(20)
                 await ctx.editMessageText(silentData.map(item => `${item.userId} در ${new Date(item.silentedAt).toLocaleString()} توسط ${item.silentBy}\n`).join(""))
                 break;
             case "adminlist":
-                const adminData = await promote.find({ chatId }).lean()
+                const adminData = await promote.find({ chatId }).lean().limit(20)
                 await ctx.editMessageText(adminData.map(item => `${item.userId} در ${new Date(item.promotedAt).toLocaleString()} توسط ${item.PromotedtBy}\n`).join(""))
                 break;
             default:

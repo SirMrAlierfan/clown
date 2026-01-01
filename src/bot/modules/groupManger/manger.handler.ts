@@ -3,15 +3,13 @@ import { bot } from "../bot";
 import { silent } from "@/database/models/silentList";
 import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
+import { Composer } from "telegraf";
 
 console.log("GROUP MANAGER LOADED");
 
-bot.on("text", async (ctx) => {
-  console.log("TEXT EVENT HIT");
-});
 
-
-bot.on("text", async (ctx) => {
+export const managerComposer= new Composer()
+managerComposer.on("text", async (ctx,next) => {
   const userId: number = ctx.from.id;
   const adminList = await ctx.getChatAdministrators();
   const isAdmin: boolean = adminList.some(admin => admin.user.id === userId);
@@ -241,4 +239,5 @@ bot.on("text", async (ctx) => {
     default:
       break;
   }
+  await next()
 });
