@@ -5,13 +5,16 @@ import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
 import { Composer } from "telegraf";
 import { ensureDB } from "@/database/init";
+import mongoose from "mongoose";
 
 console.log("GROUP MANAGER LOADED");
 
 
-export const managerComposer= new Composer()
-managerComposer.on("text", async (ctx,next) => {
-  await ensureDB
+export const managerComposer = new Composer()
+managerComposer.on("text", async (ctx, next) => {
+  console.log("DB ready:", mongoose.connection.readyState);
+
+  await ensureDB()
   const userId: number = ctx.from.id;
   const adminList = await ctx.getChatAdministrators();
   const isAdmin: boolean = adminList.some(admin => admin.user.id === userId);
@@ -201,40 +204,45 @@ managerComposer.on("text", async (ctx,next) => {
       console.log(err);
       break
     }
-    case "nickname": case "لقب":try{
+    case "nickname": case "لقب": try {
       const gettedNickname = await NickName.findOne({ userId: originalUserId, chatId })
       ctx.reply(`لقب کاربر : ${gettedNickname?.name}`)
-      break}catch (err) {
+      break
+    } catch (err) {
       console.log(err);
       break
     }
-    case "delnickname": case "حذف لقب":try{
+    case "delnickname": case "حذف لقب": try {
 
       await NickName.deleteOne({ userId: originalUserId, chatId })
 
       ctx.reply(`لقب کاربر حذف شد`)
-      break}catch (err) {
+      break
+    } catch (err) {
       console.log(err);
       break
     }
-    case "pin": case "پین":try{
+    case "pin": case "پین": try {
       await bot.telegram.pinChatMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام پین شد`)
-      break}catch (err) {
+      break
+    } catch (err) {
       console.log(err);
       break
     }
-    case "unpin": case "حذف پین":try{
+    case "unpin": case "حذف پین": try {
       await bot.telegram.unpinChatMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام از پین درآمد`)
-      break}catch (err) {
+      break
+    } catch (err) {
       console.log(err);
       break
     }
-    case "del": case "حذف":try{
+    case "del": case "حذف": try {
       await bot.telegram.deleteMessage(chatId, ctx.message.reply_to_message.message_id)
       ctx.reply(`پیام حذف شد`)
-      break}catch (err) {
+      break
+    } catch (err) {
       console.log(err);
       break
     }
