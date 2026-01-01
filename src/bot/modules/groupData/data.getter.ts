@@ -4,8 +4,10 @@ import { silent } from "@/database/models/silentList";
 import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
 import { Composer, Markup } from "telegraf";
+import { ensureDB } from "@/database/init";
 export const listComposer = new Composer()
 listComposer.on("text", async (ctx, next) => {
+    await ensureDB();
     const userId: number = ctx.from.id;
     const chatId = ctx.chat.id;
     const adminList = await ctx.getChatAdministrators();
@@ -26,6 +28,7 @@ listComposer.on("text", async (ctx, next) => {
     await next()
 })
 listComposer.on("callback_query", async (ctx) => {
+    await ensureDB();
     const userId: number = ctx.from.id;
     if (!ctx.chat?.id) return
     const chatId = ctx.chat.id;

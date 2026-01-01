@@ -4,12 +4,14 @@ import { silent } from "@/database/models/silentList";
 import { promote } from "@/database/models/promotedList";
 import { NickName } from "@/database/models/nickNameList";
 import { Composer } from "telegraf";
+import { ensureDB } from "@/database/init";
 
 console.log("GROUP MANAGER LOADED");
 
 
 export const managerComposer= new Composer()
 managerComposer.on("text", async (ctx,next) => {
+  await ensureDB
   const userId: number = ctx.from.id;
   const adminList = await ctx.getChatAdministrators();
   const isAdmin: boolean = adminList.some(admin => admin.user.id === userId);
