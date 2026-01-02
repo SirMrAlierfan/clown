@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const promotedSchema = new mongoose.Schema({
+const specialUsersSchema = new mongoose.Schema({
   userId: {
     type: Number,
     required: true,
@@ -9,15 +9,15 @@ const promotedSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  PromotedtBy: {
+  specialedtBy: {
     type: Number,
     required: true,
   },
-  promotedAt: {
+  specialedAt: {
     type: Date,
     default: Date.now,
   },
 });
 
-promotedSchema.index({ userId: 1, chatId: 1 }, { unique: true });
-export const promote = mongoose.model("Promoted", promotedSchema);
+specialUsersSchema.index({ userId: 1, chatId: 1 }, { unique: true });
+export const specialList = mongoose.model("specialUsers", specialUsersSchema);
