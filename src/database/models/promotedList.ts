@@ -11,7 +11,7 @@ const promotedSchema = new mongoose.Schema({
   },
   PromotedtBy: {
     type: Number,
-    required: true,
+    
   },
   promotedAt: {
     type: Date,
