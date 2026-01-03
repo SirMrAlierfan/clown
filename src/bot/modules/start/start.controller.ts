@@ -1,17 +1,19 @@
+
 import { bot } from "../bot";
+import { startComposer } from "./start.handler";
 
 const userMessages: Record<number, string> = {};
 let userId: number | undefined;
 let userName: string;
-bot.action("gap", (ctx) => {
+startComposer.action("gap", (ctx) => {
   ctx.reply("https://t.me/joinchat/qc6GaSXlxktmMDA0");
 });
-bot.action("IdFounder", async (ctx) => {
+startComposer.action("IdFounder", async (ctx) => {
   userId = ctx.chat?.id;
   userName = ctx.from.first_name;
   await ctx.reply(`your id is : ${userId}\n for:${userName}`);
 });
-bot.action("pvMsg", async (ctx) => {
+startComposer.action("pvMsg", async (ctx) => {
   await ctx.answerCbQuery();
   await ctx.reply("write your msg");
 
@@ -28,9 +30,9 @@ bot.action("pvMsg", async (ctx) => {
     }
   };
 
-  bot.on("text", handler);
+  startComposer.on("text", handler);
 });
-bot.action("privetMsg", async (ctx) => {
+startComposer.action("privetMsg", async (ctx) => {
   await ctx.answerCbQuery();
   await ctx.reply("write your msg to batman as privet");
   const handler = (ctx2: any) => {
@@ -38,5 +40,5 @@ bot.action("privetMsg", async (ctx) => {
     ctx2.reply("your message has been delverd!");
     bot.telegram.sendMessage(7584261287, `Message :${msg}`);
   };
-  bot.on("text", handler);
+  startComposer.on("text", handler);
 });

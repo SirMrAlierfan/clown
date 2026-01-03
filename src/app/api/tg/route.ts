@@ -4,7 +4,8 @@ import { connectDB } from "@/database/database";
 
 import { managerComposer } from "@/bot/modules/groupManger/manger.handler";
 import { listComposer } from "@/bot/modules/groupData/data.getter";
-
+import { startComposer } from "@/bot/modules/start/start.handler";
+bot.use(startComposer);
 bot.use(managerComposer);
 bot.use(listComposer);
 

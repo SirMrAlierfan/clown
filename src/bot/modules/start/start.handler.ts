@@ -1,7 +1,7 @@
-import { Markup } from "telegraf";
+import { Composer, Markup } from "telegraf";
 import { bot } from "@/bot/modules/bot";
-
-bot.start(async (ctx) => {
+export const startComposer = new Composer();
+startComposer.start(async (ctx) => {
   await ctx.reply(
     "what do you want from this clown",
     Markup.inlineKeyboard([
