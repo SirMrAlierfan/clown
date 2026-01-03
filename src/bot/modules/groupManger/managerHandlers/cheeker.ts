@@ -19,7 +19,7 @@ export async function isSilent(
   return is ? true : false;
 }
 export async function isPromoted(
-  userId: number,
+  userId: number|undefined,
   chatId: number,
 ): Promise<boolean> {
   const is = await promote.exists({ userId, chatId });
@@ -33,7 +33,7 @@ export async function doesHaveNickName(
   return is ? true : false;
 }
 export async function isSpecialUser(
-  userId: number,
+  userId: number|undefined,
   chatId: number,
 ): Promise<boolean> {
   const is = await specialList.exists({ userId, chatId });

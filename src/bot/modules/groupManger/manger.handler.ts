@@ -8,8 +8,10 @@ import { ensureDB } from "@/database/init";
 import mongoose from "mongoose";
 import { banHandler, unBanHandler } from "./managerHandlers/ban";
 import { silentHandler, unSilentHandler } from "./managerHandlers/silent";
-import { isPromoted } from "./managerHandlers/cheeker";
+import { isPromoted, isSpecialUser } from "./managerHandlers/cheeker";
 import { group } from "@/database/models/groupList";
+import { demoteHandler, promoteHandler } from "./managerHandlers/promote";
+import { addSpecialHandler, removeSpecialHandler } from "./managerHandlers/specialUser";
 
 console.log("GROUP MANAGER LOADED");
 export interface CommandContext {
@@ -74,7 +76,7 @@ bot.on("my_chat_member", async (ctx) => {
       promote.deleteMany({ chatId }),
       NickName.deleteMany({ chatId }),
     ]);
-
+    group.deleteOne({ chatId });
     console.log(`🧹 Bot removed from chat ${chatId}, data cleaned.`);
   }
 });
@@ -117,32 +119,47 @@ managerComposer.on("text", async (ctx, next) => {
       }
 
 
-      else if (ctx.message.entities) {
-        const entity = ctx.message.entities.find(
-          e => e.type === "text_mention" && "user" in e
-        );
-        if (entity && "user" in entity) {
-          targetUserId = entity.user.id;
-          targetUsername =
-            entity.user.username || entity.user.first_name;
+      if (ctx.message.entities) {
+        const mentionEntity = ctx.message.entities.find(e => e.type === "text_mention");
+        if (mentionEntity && "user" in mentionEntity) {
+          targetUserId = mentionEntity.user.id;
+          targetUsername = mentionEntity.user.username || mentionEntity.user.first_name;
+        } else {
+          const usernameEntity = ctx.message.entities.find(e => e.type === "mention");
+          if (usernameEntity) {
+            const username = ctx.message.text.slice(usernameEntity.offset + 1, usernameEntity.offset + usernameEntity.length); // حذف @
+            try {
+              const userChat = await ctx.telegram.getChat(`@${username}`);
+              targetUserId = userChat.id;
+              targetUsername = username
+            } catch (err) {
+              await ctx.reply("نمی‌توانم کاربر را پیدا کنم. شاید هنوز با ربات تعامل نکرده باشد.");
+            }
+
+          }
         }
       }
 
 
 
+    
       const commends =
         [
           { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
           { keys: ["unban", "unkick", "حذف بن"], handler: unBanHandler },
           { keys: ["silent", "خفه", "سکوت"], handler: silentHandler },
           { keys: ["unsilent", "حذف خفه", "حذف سکوت"], handler: unSilentHandler },
+          , { keys: ["promote", "ادمین"], handler: promoteHandler },
+          , { keys: ["demote", "حذف ادمین"], handler: demoteHandler },
+          , { keys: ["addspecial", "ویژه"], handler: addSpecialHandler },
+          , { keys: ["removespecial", "حذف ویژه"], handler: removeSpecialHandler },
         ]
       function matchCommand(command: string | undefined, keys: string[]) {
         if (!command) return false;
         return keys.includes(command);
       }
 
-      if (!targetUserId) {
+      if (!targetUserId && parsedCommand.command) {
         await ctx.reply("یا روی پیام کاربر ریپلای کن یا یوزرنیم بده.");
         return;
       }
@@ -150,6 +167,21 @@ managerComposer.on("text", async (ctx, next) => {
         await ctx.reply("نمی‌تونی روی خودت این دستور رو اجرا کنی.");
         return;
       }
+      const restrictedCommands = ["ban", "kick", "بن", "سیک", "silent", "خفه", "سکوت"];
+
+      if (restrictedCommands.includes(parsedCommand.command)) {
+        const targetIsPromoted = await isPromoted(targetUserId, chatId);
+        const targetIsSpecial = await isSpecialUser(targetUserId, chatId);
+
+        if (targetIsPromoted || targetIsSpecial) {
+          await ctx.reply(
+            `نمی‌تونی روی ادمین‌ها یا کاربران ویژه این دستور رو اجرا کنی.`,
+            { parse_mode: "HTML" },
+          );
+          return;
+        }
+      }
+
 
 
 
