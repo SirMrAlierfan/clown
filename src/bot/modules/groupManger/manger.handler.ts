@@ -14,10 +14,10 @@ import { demoteHandler, promoteHandler } from "./managerHandlers/promote";
 import { addSpecialHandler, removeSpecialHandler } from "./managerHandlers/specialUser";
 import { deleteMsg, idInfo, pinMsg, unpinMsg } from "./managerHandlers/oneLineCommends";
 import { canManage } from "./guards";
-import { runCommand } from "./commend.router";
+import { CommandDef, runCommand } from "./commend.router";
 
 console.log("GROUP MANAGER LOADED");
- 
+
 
 
 
@@ -75,11 +75,17 @@ managerComposer.on("my_chat_member", async (ctx) => {
 
 managerComposer.on("text", async (ctx, next) => {
   await ensureDB();
+  console.log("TEXT:", ctx.message.text);
+  console.log("USER:", ctx.from.id);
 
   const chatId = ctx.chat.id;
   const userId = ctx.from.id;
 
-  if (!(await canManage(ctx, chatId, userId))) return next();
+  if (!(await canManage(ctx, chatId, userId))) {
+    await ctx.reply("اجازه اجرای دستور را نداری");
+    return;
+  }
+
 
   let targetUserId: number | undefined;
   let targetUsername = "کاربر";
@@ -90,23 +96,32 @@ managerComposer.on("text", async (ctx, next) => {
       ctx.message.reply_to_message.from.username ||
       ctx.message.reply_to_message.from.first_name;
   }
+  const commends: CommandDef[] = [
+    { keys: ["ban", "بن"], type: "USER", handler: banHandler },
+    { keys: ["unban"], type: "USER", handler: unBanHandler },
+    { keys: ["id", "ایدی"], type: "USER", handler: idInfo },
+    { keys: ["silent", "سکوت"], type: "USER", handler: silentHandler },
+    { keys: ["unsilent", "حذف سکوت"], type: "USER", handler: unSilentHandler },
+    { keys: ["promote", "پروموت"], type: "USER", handler: promoteHandler },
+    { keys: ["demote", "حذف ادمین"], type: "USER", handler: demoteHandler },
+    { keys: ["addspecial", "ویژه"], type: "USER", handler: addSpecialHandler },
+    { keys: ["removespecial", "حذف ویژه"], type: "USER", handler: removeSpecialHandler },
+    { keys: ["del", "حذف"], type: "MESSAGE", handler: deleteMsg },
+    { keys: ["pin", "پین"], type: "MESSAGE", handler: pinMsg },
+    { keys: ["unpin", "حذف پین"], type: "MESSAGE", handler: unpinMsg },
+    {
+      keys: ["test"], type: "MESSAGE", handler: async ({ ctx }) => {
+        await ctx.reply("OK");
+      }
+    }
+
+  ]
+  console.log("TARGET:", targetUserId);
 
   const handled = await runCommand(
     ctx,
-    [
-      { keys: ["ban", "بن"], type: "USER", handler: banHandler },
-      { keys: ["unban"], type: "USER", handler: unBanHandler },
-      { keys: ["id", "ایدی"], type: "USER", handler:idInfo},     
-      { keys: ["silent", "سکوت"], type: "USER", handler: silentHandler },
-      { keys: ["unsilent", "حذف سکوت"], type: "USER", handler: unSilentHandler },
-      { keys: ["promote", "پروموت"], type: "USER", handler: promoteHandler },
-      { keys: ["demote", "حذف ادمین"], type: "USER", handler: demoteHandler },
-      { keys: ["addspecial", "ویژه"], type: "USER", handler: addSpecialHandler },
-      { keys: ["removespecial", "حذف ویژه"], type: "USER", handler: removeSpecialHandler },
-      { keys: ["del", "حذف"], type: "MESSAGE", handler: deleteMsg },
-      { keys: ["pin", "پین"], type: "MESSAGE", handler: pinMsg },
-      { keys: ["unpin", "حذف پین"], type: "MESSAGE", handler: unpinMsg },
-    ],
+    commends
+    ,
     {
       chatId,
       userId,

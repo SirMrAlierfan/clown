@@ -26,6 +26,8 @@ export async function runCommand(
     await ctx.reply("باید روی پیام ریپلای کنی.");
     return true;
   }
+  console.log("COMMAND:", command);
+  console.log("FOUND:", !!cmd);
 
   await cmd.handler(data);
   return true;
