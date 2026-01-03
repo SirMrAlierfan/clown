@@ -88,42 +88,48 @@ managerComposer.on("text", async (ctx, next) => {
   if (await isPromoted(userId, chatId)) {
 
     const commendBeforeParse = ctx.message.text.trim().toLowerCase();
-    const commandParser = (
-      msg: string
-    ): { command: string; username: string } | null => {
-      const match = msg.match(/^(.*?)(?:\s+@(\w+))$/);
-      if (!match) return null;
+    interface ParsedCommand {
+      command: string;
+      args: string[];
+    }
 
+    function commandParser(text: string): ParsedCommand | null {
+      if (!text) return null;
+
+      const parts = text.trim().split(/\s+/);
       return {
-        command: match[1].trim(),
-        username: match[2],
+        command: parts[0],
+        args: parts.slice(1),
       };
-    };
+    }
+
     const parsedCommand = commandParser(commendBeforeParse);
     if (parsedCommand?.command) {
       let targetUserId: number | undefined;
+      let targetUsername = "کاربر";
 
 
-      if (ctx.message.reply_to_message?.from?.id) {
+      if (ctx.message.reply_to_message?.from) {
         targetUserId = ctx.message.reply_to_message.from.id;
+        targetUsername =
+          ctx.message.reply_to_message.from.username ||
+          ctx.message.reply_to_message.from.first_name;
       }
 
 
-
-
       else if (ctx.message.entities) {
-        const entity = ctx.message.entities.find(e => e.type === "text_mention" && "user" in e);
+        const entity = ctx.message.entities.find(
+          e => e.type === "text_mention" && "user" in e
+        );
         if (entity && "user" in entity) {
           targetUserId = entity.user.id;
+          targetUsername =
+            entity.user.username || entity.user.first_name;
         }
       }
 
 
-      const targetUsername =
-        parsedCommand?.username ||
-        ctx.message.reply_to_message?.from?.username ||
-        ctx.message.reply_to_message?.from?.first_name ||
-        "کاربر";
+
       const commends =
         [
           { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
