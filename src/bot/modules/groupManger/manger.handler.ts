@@ -12,6 +12,7 @@ import { isPromoted, isSpecialUser } from "./managerHandlers/cheeker";
 import { group } from "@/database/models/groupList";
 import { demoteHandler, promoteHandler } from "./managerHandlers/promote";
 import { addSpecialHandler, removeSpecialHandler } from "./managerHandlers/specialUser";
+import { deleatMsgHandler, deleatMsgHandler, idHandler, pinMsgHandler, unPinMsgHandler } from "./managerHandlers/oneLineCommends";
 
 console.log("GROUP MANAGER LOADED");
 export interface CommandContext {
@@ -142,7 +143,7 @@ managerComposer.on("text", async (ctx, next) => {
 
 
 
-    
+
       const commends =
         [
           { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
@@ -153,6 +154,10 @@ managerComposer.on("text", async (ctx, next) => {
           , { keys: ["demote", "حذف ادمین"], handler: demoteHandler },
           , { keys: ["addspecial", "ویژه"], handler: addSpecialHandler },
           , { keys: ["removespecial", "حذف ویژه"], handler: removeSpecialHandler },
+          , { keys: ["id", "آیدی", "ایدی"], handler: idHandler },
+          { keys: ["del", "حذف"], handler: deleatMsgHandler },
+          { keys: ["pin", "پین"], handler: pinMsgHandler },
+          { keys: ["unpin", "حذف پین"], handler: unPinMsgHandler },
         ]
       function matchCommand(command: string | undefined, keys: string[]) {
         if (!command) return false;
