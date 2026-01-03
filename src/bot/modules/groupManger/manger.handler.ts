@@ -144,47 +144,79 @@ managerComposer.on("text", async (ctx, next) => {
 
 
 
-      const commends =
-        [
-          { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
-          { keys: ["unban", "unkick", "حذف بن"], handler: unBanHandler },
-          { keys: ["silent", "خفه", "سکوت"], handler: silentHandler },
-          { keys: ["unsilent", "حذف خفه", "حذف سکوت"], handler: unSilentHandler },
-          , { keys: ["promote", "ادمین"], handler: promoteHandler },
-          , { keys: ["demote", "حذف ادمین"], handler: demoteHandler },
-          , { keys: ["addspecial", "ویژه"], handler: addSpecialHandler },
-          , { keys: ["removespecial", "حذف ویژه"], handler: removeSpecialHandler },
-          , { keys: ["id", "آیدی", "ایدی"], handler: idHandler },
-          { keys: ["del", "حذف"], handler: deleatMsgHandler },
-          { keys: ["pin", "پین"], handler: pinMsgHandler },
-          { keys: ["unpin", "حذف پین"], handler: unPinMsgHandler },
-        ]
+      const commends = [
+        { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
+        { keys: ["unban", "unkick", "حذف بن"], handler: unBanHandler },
+        { keys: ["silent", "خفه", "سکوت"], handler: silentHandler },
+        { keys: ["unsilent", "حذف خفه", "حذف سکوت"], handler: unSilentHandler },
+        { keys: ["promote", "ادمین"], handler: promoteHandler },
+        { keys: ["demote", "حذف ادمین"], handler: demoteHandler },
+        { keys: ["addspecial", "ویژه"], handler: addSpecialHandler },
+        { keys: ["removespecial", "حذف ویژه"], handler: removeSpecialHandler },
+        { keys: ["id", "آیدی", "ایدی"], handler: idHandler },
+        { keys: ["del", "حذف"], handler: deleatMsgHandler },
+        { keys: ["pin", "پین"], handler: pinMsgHandler },
+        { keys: ["unpin", "حذف پین"], handler: unPinMsgHandler },
+      ];
+
       function matchCommand(command: string | undefined, keys: string[]) {
         if (!command) return false;
         return keys.includes(command);
       }
 
-      if (!targetUserId && parsedCommand.command) {
-        await ctx.reply("یا روی پیام کاربر ریپلای کن یا یوزرنیم بده.");
-        return;
-      }
-      if (targetUserId === userId) {
-        await ctx.reply("نمی‌تونی روی خودت این دستور رو اجرا کنی.");
-        return;
-      }
+
+
       const restrictedCommands = ["ban", "kick", "بن", "سیک", "silent", "خفه", "سکوت"];
 
       if (restrictedCommands.includes(parsedCommand.command)) {
         const targetIsPromoted = await isPromoted(targetUserId, chatId);
         const targetIsSpecial = await isSpecialUser(targetUserId, chatId);
 
-        if (targetIsPromoted || targetIsSpecial) {
-          await ctx.reply(
-            `نمی‌تونی روی ادمین‌ها یا کاربران ویژه این دستور رو اجرا کنی.`,
-            { parse_mode: "HTML" },
-          );
+
+      }
+      const USER_COMMANDS = [
+        "ban", "kick", "بن", "سیک",
+        "silent", "خفه", "سکوت",
+        "promote", "ادمین",
+        "demote", "حذف ادمین",
+        "addspecial", "ویژه",
+        "removespecial", "حذف ویژه",
+        "id", "آیدی", "ایدی"
+      ];
+
+      const MESSAGE_COMMANDS = [
+        "del", "حذف",
+        "pin", "پین",
+        "unpin", "حذف پین"
+      ];
+      if (targetUserId === userId) {
+        await ctx.reply("نمی‌تونی روی خودت این دستور رو اجرا کنی.");
+        return;
+      }
+      if (USER_COMMANDS.includes(parsedCommand.command)) {
+        if (!targetUserId) {
+          await ctx.reply("روی پیام کاربر ریپلای کن یا یوزرنیم بده.");
           return;
         }
+
+        if (targetUserId === userId) {
+          await ctx.reply("نمی‌تونی روی خودت اجرا کنی.");
+          return;
+        }
+      }
+
+      if (MESSAGE_COMMANDS.includes(parsedCommand.command)) {
+        if (!ctx.message.reply_to_message) {
+          await ctx.reply("باید روی پیام ریپلای کنی.");
+          return;
+        }
+      }
+
+      const ALL_COMMAND_KEYS = commends.flatMap(c => c.keys);
+      if (!parsedCommand?.command) return;
+
+      if (!ALL_COMMAND_KEYS.includes(parsedCommand.command)) {
+        return; // 
       }
 
 
@@ -203,8 +235,8 @@ managerComposer.on("text", async (ctx, next) => {
             return;
           }
         }
-        else
-          await next();
+
+
       }
 
     }
