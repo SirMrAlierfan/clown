@@ -1,35 +1,31 @@
+import { CommandHandler } from "../types.js";
 
-    import { bot } from "../../bot";
-    import type { CommandHandler } from "../manger.handler";
-    import { isPromoted, isSpecialUser } from "./cheeker";
+export const deleteMsg: CommandHandler = async ({ ctx, chatId }) => {
+  await ctx.telegram.deleteMessage(
+    chatId,
+    ctx.message.reply_to_message.message_id
+  );
+};
 
-    export const deleatMsgHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-        await ctx.deleteMessage({ chatId, messageId: ctx.message?.reply_to_message?.message_id! });
-        await ctx.reply(
-            ` حذف شد.`,
-            { parse_mode: "HTML" },
-        );
-    };
+export const pinMsg: CommandHandler = async ({ ctx, chatId }) => {
+  await ctx.telegram.pinChatMessage(
+    chatId,
+    ctx.message.reply_to_message.message_id
+  );
+};
 
-    export const pinMsgHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-        await ctx.pinChatMessage({ chatId, messageId: ctx.message?.reply_to_message?.message_id! });
-        await ctx.reply(
-            ` پین شد.`,
-            { parse_mode: "HTML" },
-        );
-    };
+export const unpinMsg: CommandHandler = async ({ ctx, chatId }) => {
+  await ctx.telegram.unpinChatMessage(chatId);
+};
 
-    export const unPinMsgHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-        await ctx.unpinChatMessage({ chatId, messageId: ctx.message?.reply_to_message?.message_id! });
-        await ctx.reply(
-            ` از پین خارج شد.`,
-            { parse_mode: "HTML" },
-        );
-    };
-    export const idHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-
-        await ctx.reply(
-            `آیدی کاربر <a href="tg://user?id=${targetUserId}">${targetUsername}</a> : <b>${targetUserId}</b>\n مقام کاربر ${await isPromoted(targetUserId, chatId) ? "ادمین" : await isSpecialUser(targetUserId, chatId) ? "ویژه" : "عادی"} \n آیدی گروه : <b>${chatId}</b>`,
-            { parse_mode: "HTML" },
-        );
-    };
+export const idInfo: CommandHandler = async ({
+  ctx,
+  chatId,
+  targetUserId,
+  targetUsername,
+}) => {
+  await ctx.reply(
+    `👤 ${targetUsername}\n🆔 ${targetUserId}\n🏠 ${chatId}`,
+    { parse_mode: "HTML" }
+  );
+};

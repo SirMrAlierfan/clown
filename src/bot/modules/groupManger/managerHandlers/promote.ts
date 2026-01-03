@@ -1,6 +1,6 @@
 import { promote } from "@/database/models/promotedList";
 import { bot } from "../../bot";
-import type { CommandHandler } from "../manger.handler";
+import type { CommandHandler } from "../types";
 import { isPromoted, isSpecialUser } from "./cheeker";
 
 export const promoteHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {

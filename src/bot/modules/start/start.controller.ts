@@ -1,53 +1,38 @@
-
 import { bot } from "../bot";
 import { startComposer } from "./start.handler";
-
-const userMessages: Record<number, string> = {};
-let userId: number | undefined;
-let userName: string;
-startComposer.action("gap", (ctx) => {
-    ctx.reply("https://t.me/joinchat/qc6GaSXlxktmMDA0");
+const waitingForPvMessage = new Set<number>();
+startComposer.action("gap", async (ctx) => {
+  await ctx.answerCbQuery();
+  await ctx.reply("https://t.me/joinchat/qc6GaSXlxktmMDA0");
 });
+
 startComposer.action("IdFounder", async (ctx) => {
-    userId = ctx.chat?.id;
-    userName = ctx.from.first_name;
-    await ctx.reply(`your id is : ${userId}\n for:${userName}`);
+  await ctx.answerCbQuery();
+  await ctx.reply(
+    `your id is : ${ctx.from.id}\nfor: ${ctx.from.first_name}`
+  );
 });
-startComposer.action("pvMsg", async (ctx) => {
-    await ctx.answerCbQuery();
-    await ctx.reply("write your msg");
-
-    const handler = (ctx2: any) => {
-        const userId = ctx2.from.id;
-        if (!userMessages[userId]) {
-            const msg = ctx2.message.text;
-            userMessages[userId] = msg;
-            ctx2.reply("your message has been saved!");
-            bot.telegram.sendMessage(
-                7584261287,
-                `Message from @${ctx2.from.username || ctx2.from.first_name}:\n${msg}`,
-            );
-        }
-    };
-
-    startComposer.on("text", handler);
-});
-const waitingForMessage = new Set<number>();
 
 startComposer.action("pvMsg", async (ctx) => {
-    waitingForMessage.add(ctx.from.id);
-    await ctx.reply("پیام خود را ارسال کنید");
+  await ctx.answerCbQuery();
+  waitingForPvMessage.add(ctx.from.id);
+  await ctx.reply("پیام خود را ارسال کنید");
 });
 
-startComposer.on("text", async (ctx) => {
-    if (!waitingForMessage.has(ctx.from.id)) return;
 
-    waitingForMessage.delete(ctx.from.id);
+startComposer.on("text", async (ctx, next) => {
+  const userId = ctx.from.id;
 
-    await bot.telegram.sendMessage(
-        7584261287,
-        `Message from ${ctx.from.username || ctx.from.first_name}:\n${ctx.message.text}`
-    );
+  if (!waitingForPvMessage.has(userId)) {
+    return next();
+  }
 
-    await ctx.reply("پیام شما ارسال شد");
+  waitingForPvMessage.delete(userId);
+
+  await bot.telegram.sendMessage(
+    7584261287,
+    `Message from ${ctx.from.username || ctx.from.first_name}:\n${ctx.message.text}`
+  );
+
+  await ctx.reply("پیام شما ارسال شد");
 });

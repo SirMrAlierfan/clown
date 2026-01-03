@@ -12,27 +12,17 @@ import { isPromoted, isSpecialUser } from "./managerHandlers/cheeker";
 import { group } from "@/database/models/groupList";
 import { demoteHandler, promoteHandler } from "./managerHandlers/promote";
 import { addSpecialHandler, removeSpecialHandler } from "./managerHandlers/specialUser";
-import { deleatMsgHandler, idHandler, pinMsgHandler, unPinMsgHandler } from "./managerHandlers/oneLineCommends";
+import { deleteMsg, idInfo, pinMsg, unpinMsg } from "./managerHandlers/oneLineCommends";
+import { canManage } from "./guards";
+import { runCommand } from "./commend.router";
 
 console.log("GROUP MANAGER LOADED");
-export interface CommandContext {
-  chatId: number;
-  userId: number;
-  targetUserId: number;
-  targetUsername: string;
-  ctx: any;
-  options?: {
-    nickName?: string;
-    duration?: number;
-  };
-}
-
-export type CommandHandler = (data: CommandContext) => Promise<void>;
+ 
 
 
 
 export const managerComposer = new Composer();
-bot.on("my_chat_member", async (ctx) => {
+managerComposer.on("my_chat_member", async (ctx) => {
   await ensureDB();
 
   const { old_chat_member, new_chat_member, chat } = ctx.myChatMember;
@@ -82,165 +72,49 @@ bot.on("my_chat_member", async (ctx) => {
   }
 });
 
+
 managerComposer.on("text", async (ctx, next) => {
-  await ensureDB()
+  await ensureDB();
+
   const chatId = ctx.chat.id;
-  const userId: number = ctx.from.id;
-  const admins = await ctx.getChatAdministrators();
-  const isAdmin = admins.some(a => a.user.id === userId);
-  if (await isPromoted(userId, chatId)) {
+  const userId = ctx.from.id;
 
-    const commendBeforeParse = ctx.message.text.trim().toLowerCase();
-    interface ParsedCommand {
-      command: string;
-      args: string[];
-    }
+  if (!(await canManage(ctx, chatId, userId))) return next();
 
-    function commandParser(text: string): ParsedCommand | null {
-      if (!text) return null;
+  let targetUserId: number | undefined;
+  let targetUsername = "کاربر";
 
-      const parts = text.trim().split(/\s+/);
-      return {
-        command: parts[0],
-        args: parts.slice(1),
-      };
-    }
-
-    const parsedCommand = commandParser(commendBeforeParse);
-    if (parsedCommand?.command) {
-      let targetUserId: number | undefined;
-      let targetUsername = "کاربر";
-
-
-      if (ctx.message.reply_to_message?.from) {
-        targetUserId = ctx.message.reply_to_message.from.id;
-        targetUsername =
-          ctx.message.reply_to_message.from.username ||
-          ctx.message.reply_to_message.from.first_name;
-      }
-
-
-      if (ctx.message.entities) {
-        const mentionEntity = ctx.message.entities.find(e => e.type === "text_mention");
-        if (mentionEntity && "user" in mentionEntity) {
-          targetUserId = mentionEntity.user.id;
-          targetUsername = mentionEntity.user.username || mentionEntity.user.first_name;
-        } else {
-          const usernameEntity = ctx.message.entities.find(e => e.type === "mention");
-          if (usernameEntity) {
-            const username = ctx.message.text.slice(usernameEntity.offset + 1, usernameEntity.offset + usernameEntity.length); // حذف @
-            try {
-              const userChat = await ctx.telegram.getChat(`@${username}`);
-              targetUserId = userChat.id;
-              targetUsername = username
-            } catch (err) {
-              await ctx.reply("نمی‌توانم کاربر را پیدا کنم. شاید هنوز با ربات تعامل نکرده باشد.");
-            }
-
-          }
-        }
-      }
-
-
-
-
-      const commends = [
-        { keys: ["ban", "kick", "بن", "سیک"], handler: banHandler },
-        { keys: ["unban", "unkick", "حذف بن"], handler: unBanHandler },
-        { keys: ["silent", "خفه", "سکوت"], handler: silentHandler },
-        { keys: ["unsilent", "حذف خفه", "حذف سکوت"], handler: unSilentHandler },
-        { keys: ["promote", "ادمین"], handler: promoteHandler },
-        { keys: ["demote", "حذف ادمین"], handler: demoteHandler },
-        { keys: ["addspecial", "ویژه"], handler: addSpecialHandler },
-        { keys: ["removespecial", "حذف ویژه"], handler: removeSpecialHandler },
-        { keys: ["id", "آیدی", "ایدی"], handler: idHandler },
-        { keys: ["del", "حذف"], handler: deleatMsgHandler },
-        { keys: ["pin", "پین"], handler: pinMsgHandler },
-        { keys: ["unpin", "حذف پین"], handler: unPinMsgHandler },
-      ];
-
-      function matchCommand(command: string | undefined, keys: string[]) {
-        if (!command) return false;
-        return keys.includes(command);
-      }
-
-
-
-      const restrictedCommands = ["ban", "kick", "بن", "سیک", "silent", "خفه", "سکوت"];
-
-      if (restrictedCommands.includes(parsedCommand.command)) {
-        const targetIsPromoted = await isPromoted(targetUserId, chatId);
-        const targetIsSpecial = await isSpecialUser(targetUserId, chatId);
-
-
-      }
-      const USER_COMMANDS = [
-        "ban", "kick", "بن", "سیک",
-        "silent", "خفه", "سکوت",
-        "promote", "ادمین",
-        "demote", "حذف ادمین",
-        "addspecial", "ویژه",
-        "removespecial", "حذف ویژه",
-        "id", "آیدی", "ایدی"
-      ];
-
-      const MESSAGE_COMMANDS = [
-        "del", "حذف",
-        "pin", "پین",
-        "unpin", "حذف پین"
-      ];
-      if (targetUserId === userId) {
-        await ctx.reply("نمی‌تونی روی خودت این دستور رو اجرا کنی.");
-        return;
-      }
-      if (USER_COMMANDS.includes(parsedCommand.command)) {
-        if (!targetUserId) {
-          await ctx.reply("روی پیام کاربر ریپلای کن یا یوزرنیم بده.");
-          return;
-        }
-
-        if (targetUserId === userId) {
-          await ctx.reply("نمی‌تونی روی خودت اجرا کنی.");
-          return;
-        }
-      }
-
-      if (MESSAGE_COMMANDS.includes(parsedCommand.command)) {
-        if (!ctx.message.reply_to_message) {
-          await ctx.reply("باید روی پیام ریپلای کنی.");
-          return;
-        }
-      }
-
-      const ALL_COMMAND_KEYS = commends.flatMap(c => c.keys);
-      if (!parsedCommand?.command) return;
-
-      if (!ALL_COMMAND_KEYS.includes(parsedCommand.command)) {
-        return; // 
-      }
-
-
-
-
-      for (const cmd of commends) {
-        if (cmd) {
-          if (matchCommand(parsedCommand?.command, cmd.keys)) {
-            await cmd.handler({
-              chatId,
-              userId,
-              targetUserId: targetUserId!,
-              targetUsername,
-              ctx,
-            });
-            return;
-          }
-        }
-
-
-      }
-
-    }
-
-    await next();
+  if (ctx.message.reply_to_message?.from) {
+    targetUserId = ctx.message.reply_to_message.from.id;
+    targetUsername =
+      ctx.message.reply_to_message.from.username ||
+      ctx.message.reply_to_message.from.first_name;
   }
+
+  const handled = await runCommand(
+    ctx,
+    [
+      { keys: ["ban", "بن"], type: "USER", handler: banHandler },
+      { keys: ["unban"], type: "USER", handler: unBanHandler },
+      { keys: ["id", "ایدی"], type: "USER", handler:idInfo},     
+      { keys: ["silent", "سکوت"], type: "USER", handler: silentHandler },
+      { keys: ["unsilent", "حذف سکوت"], type: "USER", handler: unSilentHandler },
+      { keys: ["promote", "پروموت"], type: "USER", handler: promoteHandler },
+      { keys: ["demote", "حذف ادمین"], type: "USER", handler: demoteHandler },
+      { keys: ["addspecial", "ویژه"], type: "USER", handler: addSpecialHandler },
+      { keys: ["removespecial", "حذف ویژه"], type: "USER", handler: removeSpecialHandler },
+      { keys: ["del", "حذف"], type: "MESSAGE", handler: deleteMsg },
+      { keys: ["pin", "پین"], type: "MESSAGE", handler: pinMsg },
+      { keys: ["unpin", "حذف پین"], type: "MESSAGE", handler: unpinMsg },
+    ],
+    {
+      chatId,
+      userId,
+      targetUserId,
+      targetUsername,
+      ctx,
+    }
+  );
+
+  if (!handled) await next();
 });

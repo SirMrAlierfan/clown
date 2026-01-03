@@ -1,11 +1,11 @@
 
 import { specialList } from "@/database/models/speciaUsersList";
 import { bot } from "../../bot";
-import type { CommandHandler } from "../manger.handler";
+import type { CommandHandler } from "../types";
 
 export const addSpecialHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
   
-
+    
     const exists = await specialList.findOne({ userId: targetUserId, chatId });
     if (exists) {
         await ctx.reply(

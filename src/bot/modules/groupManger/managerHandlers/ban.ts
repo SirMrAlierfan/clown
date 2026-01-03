@@ -1,10 +1,14 @@
 import { ban } from "@/database/models/banList";
 import { bot } from "../../bot";
-import type { CommandHandler } from "../manger.handler";
+
 import { isBanned, isPromoted, isSpecialUser } from "./cheeker";
+import { CommandHandler } from "../types";
 
 export const banHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-    
+    if (!targetUserId) {
+        await ctx.reply("لطفا یک کاربر را هدف قرار دهید.");
+        return;
+    }
     if (await isBanned(targetUserId, chatId)) {
         await ctx.reply(
             `کاربر <a href="tg://user?id=${targetUserId}">${targetUsername}</a>همین الانشم بن هست.`,
@@ -34,7 +38,10 @@ export const banHandler: CommandHandler = async ({ chatId, userId, targetUserId,
     }
 };
 export const unBanHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername,  ctx }) => {
-
+     if (!targetUserId) {
+        await ctx.reply("لطفا یک کاربر را هدف قرار دهید.");
+        return;
+    }
    
     if (!(await isBanned(targetUserId, chatId))) {
         await ctx.reply(

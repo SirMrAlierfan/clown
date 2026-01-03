@@ -1,12 +1,15 @@
 import { silent } from "@/database/models/silentList";
 import { bot } from "../../bot";
-import type { CommandHandler } from "../manger.handler";
+import type { CommandHandler } from "../types";
 import { isSilent, isPromoted, isSpecialUser } from "./cheeker";
 
 export const silentHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
 
 
-
+ if (!targetUserId) {
+        await ctx.reply("لطفا یک کاربر را هدف قرار دهید.");
+        return;
+    }
     if (await isSilent(targetUserId, chatId)) {
         await ctx.reply(
             `کاربر <a href="tg://user?id=${targetUserId}">${targetUsername}</a> همین الانشم سکوته.`,
@@ -48,7 +51,10 @@ export const silentHandler: CommandHandler = async ({ chatId, userId, targetUser
 };
 
 export const unSilentHandler: CommandHandler = async ({ chatId, userId, targetUserId, targetUsername, ctx }) => {
-
+ if (!targetUserId) {
+        await ctx.reply("لطفا یک کاربر را هدف قرار دهید.");
+        return;
+    }
 
 
     if (!(await isSilent(targetUserId, chatId))) {
