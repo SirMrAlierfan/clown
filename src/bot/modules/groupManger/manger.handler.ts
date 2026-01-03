@@ -12,7 +12,7 @@ import { isPromoted, isSpecialUser } from "./managerHandlers/cheeker";
 import { group } from "@/database/models/groupList";
 import { demoteHandler, promoteHandler } from "./managerHandlers/promote";
 import { addSpecialHandler, removeSpecialHandler } from "./managerHandlers/specialUser";
-import { deleatMsgHandler, deleatMsgHandler, idHandler, pinMsgHandler, unPinMsgHandler } from "./managerHandlers/oneLineCommends";
+import { deleatMsgHandler, idHandler, pinMsgHandler, unPinMsgHandler } from "./managerHandlers/oneLineCommends";
 
 console.log("GROUP MANAGER LOADED");
 export interface CommandContext {
@@ -191,16 +191,20 @@ managerComposer.on("text", async (ctx, next) => {
 
 
       for (const cmd of commends) {
-        if (matchCommand(parsedCommand?.command, cmd.keys)) {
-          await cmd.handler({
-            chatId,
-            userId,
-            targetUserId: targetUserId!,
-            targetUsername,
-            ctx,
-          });
-          return;
+        if (cmd) {
+          if (matchCommand(parsedCommand?.command, cmd.keys)) {
+            await cmd.handler({
+              chatId,
+              userId,
+              targetUserId: targetUserId!,
+              targetUsername,
+              ctx,
+            });
+            return;
+          }
         }
+        else
+          await next();
       }
 
     }
