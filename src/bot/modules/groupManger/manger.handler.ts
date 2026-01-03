@@ -9,6 +9,7 @@ import mongoose from "mongoose";
 import { banHandler, unBanHandler } from "./managerHandlers/ban";
 import { silentHandler, unSilentHandler } from "./managerHandlers/silent";
 import { isPromoted } from "./managerHandlers/cheeker";
+import { group } from "@/database/models/groupList";
 
 console.log("GROUP MANAGER LOADED");
 export interface CommandContext {
@@ -39,9 +40,13 @@ bot.on("my_chat_member", async (ctx) => {
       new_chat_member.status === "administrator")
   ) {
     const chatId = chat.id;
-
+    const owner = await bot.telegram.getChatAdministrators(chatId).then(admins => admins.find(a => a.status === "creator"));
     await bot.telegram.sendMessage(chat.id, "سلام! ربات با موفقیت به گروه اضافه شد ✅");
-
+    group.updateOne(
+      { chatId },
+      { $set: { addedAt: Date.now(), AddedBy: owner?.user.id || new_chat_member.user.id } },
+      { upsert: true }
+    );
 
     const admins = await ctx.getChatAdministrators();
 
@@ -55,8 +60,24 @@ bot.on("my_chat_member", async (ctx) => {
       );
     }
   }
-});
 
+  if (
+    (old_chat_member.status === "member" ||
+      old_chat_member.status === "administrator") &&
+    (new_chat_member.status === "left" ||
+      new_chat_member.status === "kicked")
+  ) {
+    const chatId = chat.id;
+    await Promise.all([
+      ban.deleteMany({ chatId }),
+      silent.deleteMany({ chatId }),
+      promote.deleteMany({ chatId }),
+      NickName.deleteMany({ chatId }),
+    ]);
+
+    console.log(`🧹 Bot removed from chat ${chatId}, data cleaned.`);
+  }
+});
 
 managerComposer.on("text", async (ctx, next) => {
   await ensureDB()
@@ -64,7 +85,7 @@ managerComposer.on("text", async (ctx, next) => {
   const userId: number = ctx.from.id;
   const admins = await ctx.getChatAdministrators();
   const isAdmin = admins.some(a => a.user.id === userId);
-  if (await isPromoted(userId, chatId) && isAdmin) {
+  if (await isPromoted(userId, chatId)) {
 
     const commendBeforeParse = ctx.message.text.trim().toLowerCase();
     const commandParser = (
@@ -81,17 +102,23 @@ managerComposer.on("text", async (ctx, next) => {
     const parsedCommand = commandParser(commendBeforeParse);
     if (parsedCommand?.command) {
       let targetUserId: number | undefined;
-      if (parsedCommand?.username) {
-        try {
-          const chat = await bot.telegram.getChat(`@${parsedCommand.username}`);
-          targetUserId = chat.id;
-        } catch {
-          await ctx.reply("یوزرنیم معتبر نیست یا قابل دسترسی نیست.");
-          return;
-        }
-      } else {
-        targetUserId = ctx.message.reply_to_message?.from?.id;
+
+
+      if (ctx.message.reply_to_message?.from?.id) {
+        targetUserId = ctx.message.reply_to_message.from.id;
       }
+
+
+
+
+      else if (ctx.message.entities) {
+        const entity = ctx.message.entities.find(e => e.type === "text_mention" && "user" in e);
+        if (entity && "user" in entity) {
+          targetUserId = entity.user.id;
+        }
+      }
+
+
       const targetUsername =
         parsedCommand?.username ||
         ctx.message.reply_to_message?.from?.username ||
@@ -135,5 +162,6 @@ managerComposer.on("text", async (ctx, next) => {
 
     }
 
-  } await next();
+    await next();
+  }
 });
