@@ -23,7 +23,7 @@ console.log("GROUP MANAGER LOADED");
 
 export const managerComposer = new Composer();
 managerComposer.on("my_chat_member", async (ctx) => {
-  await ensureDB();
+ 
 
   const { old_chat_member, new_chat_member, chat } = ctx.myChatMember;
 
@@ -42,7 +42,7 @@ managerComposer.on("my_chat_member", async (ctx) => {
     );
 
     const admins = await ctx.getChatAdministrators();
-
+    
     for (const admin of admins) {
       if (admin.user.is_bot) continue;
 
@@ -74,7 +74,7 @@ managerComposer.on("my_chat_member", async (ctx) => {
 
 
 managerComposer.on("text", async (ctx, next) => {
-  await ensureDB();
+ 
   console.log("TEXT:", ctx.message.text);
   console.log("USER:", ctx.from.id);
 
@@ -99,7 +99,7 @@ managerComposer.on("text", async (ctx, next) => {
   const commends: CommandDef[] = [
     { keys: ["ban", "بن"], type: "USER", handler: banHandler },
     { keys: ["unban"], type: "USER", handler: unBanHandler },
-    { keys: ["id", "ایدی"], type: "USER", handler: idInfo },
+    { keys: ["id", "ایدی"], type: "USER", handler: idInfo },  
     { keys: ["silent", "سکوت"], type: "USER", handler: silentHandler },
     { keys: ["unsilent", "حذف سکوت"], type: "USER", handler: unSilentHandler },
     { keys: ["promote", "پروموت"], type: "USER", handler: promoteHandler },

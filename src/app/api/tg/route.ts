@@ -5,13 +5,14 @@ import { connectDB } from "@/database/database";
 import { managerComposer } from "@/bot/modules/groupManger/manger.handler";
 import { listComposer } from "@/bot/modules/groupData/data.getter";
 import { startComposer } from "@/bot/modules/start/start.handler";
+import { ensureDB } from "@/database/init";
 bot.use(startComposer);
 bot.use(managerComposer);
 bot.use(listComposer);
 
 export async function POST(req: NextRequest) {
   try {
-    await connectDB();
+    await ensureDB();
 
     const update = await req.json();
 
