@@ -23,7 +23,7 @@ console.log("GROUP MANAGER LOADED");
 
 export const managerComposer = new Composer();
 managerComposer.on("my_chat_member", async (ctx) => {
- 
+
 
   const { old_chat_member, new_chat_member, chat } = ctx.myChatMember;
 
@@ -42,16 +42,19 @@ managerComposer.on("my_chat_member", async (ctx) => {
     );
 
     const admins = await ctx.getChatAdministrators();
-    
-    for (const admin of admins) {
-      if (admin.user.is_bot) continue;
 
-      await promote.updateOne(
-        { userId: admin.user.id, chatId },
-        { $set: { PromotedBy: admin.user.id, promotedAt: Date.now() } },
-        { upsert: true }
-      );
-    }
+    await Promise.all(
+      admins
+        .filter(a => !a.user.is_bot)
+        .map(admin =>
+          promote.updateOne(
+            { userId: admin.user.id, chatId },
+            { $set: { PromotedBy: admin.user.id, promotedAt: Date.now() } },
+            { upsert: true }
+          )
+        )
+    );
+
   }
 
   if (
@@ -74,32 +77,10 @@ managerComposer.on("my_chat_member", async (ctx) => {
 
 
 managerComposer.on("text", async (ctx, next) => {
- 
-  console.log("TEXT:", ctx.message.text);
-  console.log("USER:", ctx.from.id);
-
-  const chatId = ctx.chat.id;
-  const userId = ctx.from.id;
-
-  if (!(await canManage(ctx, chatId, userId))) {
-    await ctx.reply("اجازه اجرای دستور را نداری");
-    return;
-  }
-
-
-  let targetUserId: number | undefined;
-  let targetUsername = "کاربر";
-
-  if (ctx.message.reply_to_message?.from) {
-    targetUserId = ctx.message.reply_to_message.from.id;
-    targetUsername =
-      ctx.message.reply_to_message.from.username ||
-      ctx.message.reply_to_message.from.first_name;
-  }
   const commends: CommandDef[] = [
     { keys: ["ban", "بن"], type: "USER", handler: banHandler },
     { keys: ["unban"], type: "USER", handler: unBanHandler },
-    { keys: ["id", "ایدی"], type: "USER", handler: idInfo },  
+    { keys: ["id", "ایدی"], type: "USER", handler: idInfo },
     { keys: ["silent", "سکوت"], type: "USER", handler: silentHandler },
     { keys: ["unsilent", "حذف سکوت"], type: "USER", handler: unSilentHandler },
     { keys: ["promote", "پروموت"], type: "USER", handler: promoteHandler },
@@ -116,7 +97,34 @@ managerComposer.on("text", async (ctx, next) => {
     }
 
   ]
-  console.log("TARGET:", targetUserId);
+
+  const chatId = ctx.chat.id;
+  const userId = ctx.from.id;
+  const text = ctx.message.text.trim().toLowerCase();
+  const firstWord = text.split(/\s+/)[0];
+
+  const allKeys = commends.flatMap(c => c.keys);
+
+  if (!allKeys.includes(firstWord)) {
+    return next(); 
+  }
+
+  if (!(await canManage(ctx, chatId, userId))) {
+    await ctx.reply("اجازه اجرای دستور را نداری");
+    return;
+  }
+
+
+  let targetUserId: number | undefined;
+  let targetUsername = "کاربر";
+
+  if (ctx.message.reply_to_message?.from) {
+    targetUserId = ctx.message.reply_to_message.from.id;
+    targetUsername =
+      ctx.message.reply_to_message.from.username ||
+      ctx.message.reply_to_message.from.first_name;
+  }
+
 
   const handled = await runCommand(
     ctx,
