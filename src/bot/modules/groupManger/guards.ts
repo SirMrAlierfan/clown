@@ -1,9 +1,10 @@
+import { ChatMemberAdministrator } from "telegraf/types";
 import { isPromoted, isSpecialUser } from "./managerHandlers/cheeker";
 
 
 export async function canManage(ctx: any, chatId: number, userId: number) {
-  const admins = await ctx.getChatAdministrators();
-  const isAdmin = admins.some(a => a.user.id === userId);
+  const admins: ChatMemberAdministrator[] = await ctx.getChatAdministrators();
+  const isAdmin:boolean = admins.some(a => a.user.id === userId);
   const isDbAdmin = await isPromoted(userId, chatId);
   return isAdmin || isDbAdmin;
 }
